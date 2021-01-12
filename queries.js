@@ -28,13 +28,13 @@ const getUserById = (request, response) => {
 };
 
 const createUser = (request, response) => {
-  const { name, email } = request.body
+  const { name, email, password } = request.body
 
-  pool.query('INSERT INTO users (name, email) VALUES ($1, $2)', [name, email], (error, results) => {
+  pool.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id', [name, email, password], (error, results) => {
     if (error) {
       throw error;
     }
-    response.status(201).send(`User added with ID: ${results.insertId}`);
+    response.status(201).send(`User added with ID: ${results.rows[0].id}`);
   });
 };
 
@@ -66,6 +66,10 @@ const deleteUser = (request, response) => {
 }
 
 
+
+
+
+
 const getProfessors = (request, response) => {
   pool.query('SELECT * FROM professors ORDER BY id ASC', (error, results) => {
     if (error) {
@@ -89,11 +93,11 @@ const getProfessorsById = (request, response) => {
 const createProfessors = (request, response) => {
   const { name, email, title, school, department } = request.body
 
-  pool.query('INSERT INTO professors (name, email, title, school, department) VALUES ($1, $2, $3, $4, $5)', [name, email, title, school, department], (error, results) => {
+  pool.query('INSERT INTO professors (name, email, title, school, department) VALUES ($1, $2, $3, $4, $5) RETURNING id', [name, email, title, school, department], (error, results) => {
     if (error) {
       throw error;
     }
-    response.status(201).send(`Professor added with ID: ${results.insertId}`)
+    response.status(201).send(`Professor added with ID: ${results.rows[0].id}`)
   })
 }
 
@@ -128,6 +132,9 @@ const deleteProfessors = (request, response) => {
 
 
 
+
+
+
 const getReviews = (request, response) => {
   pool.query('SELECT * FROM reviews ORDER BY id ASC', (error, results) => {
     if (error) {
@@ -151,11 +158,11 @@ const getReviewsById = (request, response) => {
 const createReviews = (request, response) => {
   const { professor_id, rating, text } = request.body;
 
-  pool.query('INSERT INTO reviews (professor_id, rating, text) VALUES ($1, $2, $3)', [professor_id, rating, text], (error, results) => {
+  pool.query('INSERT INTO reviews (professor_id, rating, text) VALUES ($1, $2, $3) RETURNING id', [professor_id, rating, text], (error, results) => {
     if (error) {
       throw error;
     }
-    response.status(201).send(`Review added with ID: ${results.insertId}`);
+    response.status(201).send(`Review added with ID: ${results.rows[0].id}`);
   });
 };
 
