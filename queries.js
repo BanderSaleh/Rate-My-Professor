@@ -6,6 +6,43 @@ const pool = new Pool({
   password: 'password',
   port: 5432,
 })
+var jwt = require('jsonwebtoken');
+
+
+
+
+const createSession = (request, response) => {
+  const email = request.body.email;
+
+  pool.query('SELECT * FROM users WHERE email = $1', [email], (error, results) => {
+    if (error) {
+      console.log("error")
+      response.status(500).json(error);
+      return;
+    }
+    if (results.rows.length) {
+      const user = results.rows[0];
+      var token = jwt.sign({ user_id: user.id }, 'secret');
+      response.status(200).json(token);
+    } else {
+      response.status(401).json("Unauthorized");
+    }
+  });
+};
+
+const getSession = (request, response) => {
+  const token = request.headers["authorization"];
+  console.log(request.headers);
+  
+  try {
+    var decoded = jwt.verify(token, 'secret');
+    response.json(decoded);
+  } catch (error) {
+    response.status(401).json("Unauthorized");
+  }
+  
+}
+
 
 const getUsers = (request, response) => {
   pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
@@ -71,11 +108,21 @@ const deleteUser = (request, response) => {
 
 
 const getProfessors = (request, response) => {
+  // console.log(request.currentUser);
   pool.query('SELECT * FROM professors ORDER BY id ASC', (error, results) => {
     if (error) {
-      throw error
+      throw error;
     }
-    response.status(200).json(results.rows)
+    const professors = results.rows;
+    const promises = professors.map(professor => {
+      return pool.query('SELECT * FROM reviews WHERE professor_id = $1', [professor.id]).then(results => {
+        professor.reviews = results.rows;
+        return professor;
+      })
+    });
+    Promise.all(promises).then(values => {
+      response.status(200).json(values);
+    });
   })
 }
 
@@ -86,7 +133,7 @@ const getProfessorsById = (request, response) => {
     if (error) {
       throw error
     }
-    response.status(200).json(results.rows)
+    response.status(200).json(results.rows);
   })
 }
 
@@ -97,7 +144,16 @@ const createProfessors = (request, response) => {
     if (error) {
       throw error;
     }
-    response.status(201).send(`Professor added with ID: ${results.rows[0].id}`)
+    const professor = {
+      id: results.rows[0].id,
+      name,
+      email,
+      title,
+      school,
+      department,
+      reviews: []
+    }
+    response.status(201).json(professor);
   })
 }
 
@@ -158,11 +214,11 @@ const getReviewsById = (request, response) => {
 const createReviews = (request, response) => {
   const { professor_id, rating, text } = request.body;
 
-  pool.query('INSERT INTO reviews (professor_id, rating, text) VALUES ($1, $2, $3) RETURNING id', [professor_id, rating, text], (error, results) => {
+  pool.query('INSERT INTO reviews (professor_id, rating, text) VALUES ($1, $2, $3) RETURNING id, rating, professor_id, text', [professor_id, rating, text], (error, results) => {
     if (error) {
       throw error;
     }
-    response.status(201).send(`Review added with ID: ${results.rows[0].id}`);
+    response.status(201).send(results.rows[0]);
   });
 };
 
@@ -198,6 +254,8 @@ const deleteReviews = (request, response) => {
 
 
 module.exports = {
+  createSession,
+  getSession,
   getUsers,
   getUserById,
   createUser,
