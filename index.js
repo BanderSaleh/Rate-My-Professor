@@ -14,6 +14,7 @@ app.use(
     extended: true,
   })
 );
+
 app.use(express.static('public'));
 
 
@@ -57,3 +58,4 @@ app.delete('/reviews/:id', db.deleteReviews)
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
 })
+
