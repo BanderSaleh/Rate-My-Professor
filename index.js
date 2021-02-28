@@ -14,6 +14,7 @@ app.use(
     extended: true,
   })
 );
+app.use(express.static('public'));
 
 
 function isUser(req, res, next) {
