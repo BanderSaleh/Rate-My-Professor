@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const app = express();
 const cors = require('cors');
 const db = require('./queries');
-const port = 3000;
+const port = process.env.PORT || 3000;
 var jwt = require('jsonwebtoken');
 
 app.use(cors());
@@ -14,6 +14,8 @@ app.use(
     extended: true,
   })
 );
+
+app.use(express.static('public'));
 
 
 function isUser(req, res, next) {
@@ -56,3 +58,5 @@ app.delete('/reviews/:id', db.deleteReviews)
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
 })
+
+

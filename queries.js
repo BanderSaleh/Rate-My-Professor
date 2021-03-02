@@ -13,10 +13,11 @@ var jwt = require('jsonwebtoken');
 
 const createSession = (request, response) => {
   const email = request.body.email;
+  const password = request.body.password;
 
-  pool.query('SELECT * FROM users WHERE email = $1', [email], (error, results) => {
+  pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password], (error, results) => {
     if (error) {
-      console.log("error")
+      console.log("error");
       response.status(500).json(error);
       return;
     }
@@ -65,7 +66,7 @@ const getUserById = (request, response) => {
 };
 
 const createUser = (request, response) => {
-  const { name, email, password } = request.body
+  const { name, email, password } = request.body;
 
   pool.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id', [name, email, password], (error, results) => {
     if (error) {
