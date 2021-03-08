@@ -1,11 +1,22 @@
-const Pool = require('pg').Pool
-const pool = new Pool({
-  user: 'me',
-  host: 'localhost',
-  database: 'api',
-  password: 'password',
-  port: 5432,
-})
+const Pool = require('pg').Pool;
+let pool; 
+if (process.env.NODE_ENV !== "production") {
+  pool = new Pool({
+    user: 'me',
+    host: 'localhost',
+    database: 'api',
+    password: 'password',
+    port: 5432,
+  })
+} else {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  })
+}
+
 var jwt = require('jsonwebtoken');
 
 
